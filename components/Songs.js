@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
+import { SongContext } from './SongContext';
 
 const Songs = () => {
   const [songs, setSongs] = useState([]);
-  const [permission, setPermission] = useState(null);
-  const [endCursor, setEndCursor] = useState(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  // const [downloadsSongs, setDownloadsSongs] = useState([]);
+  const { playSong, setSelectedSong } = useContext(SongContext);
 
   const excludedDirectories = [
     'call recordings',
@@ -27,18 +24,9 @@ const Songs = () => {
 
   useEffect(() => {
     const requestPermissions = async () => {
-      const { status: mediaLibraryStatus } = await MediaLibrary.requestPermissionsAsync();
-
-      if (Platform.OS === 'android') {
-        const { status: storagePermissionStatus } = await MediaLibrary.requestPermissionsAsync();
-        setPermission({ mediaLibrary: mediaLibraryStatus, storage: storagePermissionStatus });
-      } else {
-        setPermission({ mediaLibrary: mediaLibraryStatus });
-      }
-
-      if (mediaLibraryStatus === 'granted') {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === 'granted') {
         fetchSongs();
-        fetchDownloadsSongs();
       } else {
         Alert.alert('Permission Required', 'Media Library permission is required!');
       }
@@ -53,63 +41,36 @@ const Songs = () => {
         mediaType: MediaLibrary.MediaType.audio,
         first: 100,
       };
-
-      if (endCursor) {
-        options.after = endCursor;
-      }
-
       const response = await MediaLibrary.getAssetsAsync(options);
-      const filteredSongs = response.assets.filter(song => !shouldExcludeSong(song));
+      
+      // Log all fetched songs for debugging
+      console.log('Fetched Songs:', response.assets);
+      
+      // Filter out unwanted songs
+      const filteredSongs = response.assets.filter(song => {
+        const exclude = shouldExcludeSong(song);
+        if (exclude) {
+          console.log('Excluding song:', song); // Log excluded songs for debugging
+        }
+        return !exclude;
+      });
 
-      const songsWithInfo = await Promise.all(
-        filteredSongs.map(async (song) => {
-          const info = await MediaLibrary.getAssetInfoAsync(song.id);
-          return { ...song, ...info };
-        })
-      );
-
-      setSongs(prevSongs => [...prevSongs, ...songsWithInfo]);
-      setEndCursor(response.endCursor);
-      setHasNextPage(response.hasNextPage);
+      setSongs(filteredSongs); // Set only the filtered songs
     } catch (error) {
       console.error("Error reading songs:", error);
     }
   };
 
-// const fetchDownloadsSongs = async () => {
-//   try {
-//     const downloadsDir = FileSystem.documentDirectory + '../../Downloads'; // Adjust this path
-//     const files = await FileSystem.readDirectoryAsync(downloadsDir);
-
-//     const audioFiles = files.filter(file =>
-//       file.endsWith('.mp3') || file.endsWith('.wav') // You can add more formats as needed
-//     );
-
-//     const downloadsSongs = audioFiles.map(file => ({
-//       filename: file,
-//       uri: `${downloadsDir}/${file}`,
-//     }));
-
-//     setDownloadsSongs(downloadsSongs); // Set your state with the audio files found
-//   } catch (error) {
-//     console.error('Error accessing Downloads folder:', error);
-//     Alert.alert('Error', 'Could not access Downloads folder: ' + error.message);
-//   }
-// };
-
-
-  // Define the handleLoadMore function
-  const handleLoadMore = () => {
-    if (hasNextPage) {
-      fetchSongs(); // Call the fetchSongs function to load more songs
-    }
+  const handleSongPress = (song) => {
+    setSelectedSong(song);
+    playSong(song);
   };
 
   const renderSong = ({ item }) => (
-    <TouchableOpacity style={styles.songItem}>
+    <TouchableOpacity style={styles.songItem} onPress={() => handleSongPress(item)}>
       <View>
         <Text style={styles.songTitle} numberOfLines={1}>
-          {item.filename || item.name} {/* Fallback to name */}
+          {item.filename || item.name}
         </Text>
         <Text style={styles.albumText} numberOfLines={1}>
           {item.album || 'Unknown Album'}
@@ -118,20 +79,15 @@ const Songs = () => {
     </TouchableOpacity>
   );
 
-  const allSongs = [...songs];
-  // const allSongs = [...songs, ...downloadsSongs];
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Songs</Text>
-      {allSongs.length > 0 ? (
+      {songs.length > 0 ? (
         <FlatList
-          data={allSongs}
+          data={songs}
           renderItem={renderSong}
-          keyExtractor={item => item.id || item.uri}
+          keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
-          onEndReached={handleLoadMore} // Use the defined handleLoadMore function here
-          onEndReachedThreshold={0.5}
         />
       ) : (
         <Text style={styles.noSongsText}>No songs found on your device.</Text>

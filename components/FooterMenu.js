@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { SongContext } from './SongContext';
 
 const FooterMenu = ({ onNavigate }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
+  const { isPlaying, togglePlayPause } = useContext(SongContext);
 
   const handleNavigate = (screen) => {
     onNavigate(screen);
@@ -17,8 +14,7 @@ const FooterMenu = ({ onNavigate }) => {
     <View style={styles.footerContainer}>
       <MenuItem icon="home" label="Home" onPress={() => handleNavigate('Home')} />
       <MenuItem icon="library-music" label="Songs" onPress={() => handleNavigate('Songs')} />
-      
-      {/* Separate TouchableOpacity for icon and label */}
+
       <View style={styles.menuItem}>
         <TouchableOpacity onPress={togglePlayPause}>
           <MaterialIcons

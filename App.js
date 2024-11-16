@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import QuoteCard from './components/QuoteCard';
 import FooterMenu from './components/FooterMenu';
-import Songs from './components/Songs'; // Import the Songs component
-import Player from './components/Player'; // Import the Player component
-import Favorites from './components/Favorites'; // Import the Favorites component
-import Settings from './components/Settings'; // Import the Settings component
+import Songs from './components/Songs';
+import Player from './components/Player';
+import Favorites from './components/Favorites';
+import Settings from './components/Settings';
+import { SongProvider } from './components/SongContext';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('Home'); // State to track the current screen
+  const [currentScreen, setCurrentScreen] = useState('Home');
 
-  // Function to render the selected screen
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Songs':
-        return <Songs />;
+        return <Songs onNavigate={setCurrentScreen} />; // Pass the onNavigate function here
       case 'Player':
         return <Player />;
       case 'Favorites':
@@ -26,12 +26,10 @@ export default function App() {
         return (
           <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <StatusBar style="auto" />
-            {/* Header Section */}
             <View style={styles.headerContainer}>
               <Text style={styles.title}>Gaanam</Text>
               <Text style={styles.subtitle}>Your Perfect Music Companion</Text>
             </View>
-            {/* Quotes Section */}
             <View style={styles.quotesContainer}>
               <QuoteCard
                 quote="Music is the language of the spirit. It opens the secret of life bringing peace, abolishing strife."
@@ -60,13 +58,14 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      {renderScreen()}
-      <FooterMenu onNavigate={setCurrentScreen} /> {/* Pass setCurrentScreen function as a prop */}
-    </View>
+    <SongProvider>
+      <View style={styles.container}>
+        {renderScreen()}
+        <FooterMenu onNavigate={setCurrentScreen} />
+      </View>
+    </SongProvider>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
