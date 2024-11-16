@@ -8,7 +8,7 @@ const Songs = () => {
   const [permission, setPermission] = useState(null);
   const [endCursor, setEndCursor] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [downloadsSongs, setDownloadsSongs] = useState([]);
+  // const [downloadsSongs, setDownloadsSongs] = useState([]);
 
   const excludedDirectories = [
     'call recordings',
@@ -76,30 +76,32 @@ const Songs = () => {
     }
   };
 
-  const fetchDownloadsSongs = async () => {
-    try {
-      const downloadsDir = `${FileSystem.documentDirectory}/../../Downloads`; // Adjust this path if necessary
-      const files = await FileSystem.readDirectoryAsync(downloadsDir);
+// const fetchDownloadsSongs = async () => {
+//   try {
+//     const downloadsDir = FileSystem.documentDirectory + '../../Downloads'; // Adjust this path
+//     const files = await FileSystem.readDirectoryAsync(downloadsDir);
 
-      const audioFiles = files.filter(file =>
-        file.endsWith('.mp3') || file.endsWith('.wav') // Add other formats as needed
-      );
+//     const audioFiles = files.filter(file =>
+//       file.endsWith('.mp3') || file.endsWith('.wav') // You can add more formats as needed
+//     );
 
-      const downloadsSongs = audioFiles.map(file => ({
-        filename: file,
-        uri: `${downloadsDir}/${file}`,
-      }));
+//     const downloadsSongs = audioFiles.map(file => ({
+//       filename: file,
+//       uri: `${downloadsDir}/${file}`,
+//     }));
 
-      setDownloadsSongs(downloadsSongs);
-    } catch (error) {
-      console.error("Error reading downloads folder:", error);
-      Alert.alert('Error', 'Could not read Downloads folder: ' + error.message);
-    }
-  };
+//     setDownloadsSongs(downloadsSongs); // Set your state with the audio files found
+//   } catch (error) {
+//     console.error('Error accessing Downloads folder:', error);
+//     Alert.alert('Error', 'Could not access Downloads folder: ' + error.message);
+//   }
+// };
 
+
+  // Define the handleLoadMore function
   const handleLoadMore = () => {
     if (hasNextPage) {
-      fetchSongs();
+      fetchSongs(); // Call the fetchSongs function to load more songs
     }
   };
 
@@ -116,7 +118,8 @@ const Songs = () => {
     </TouchableOpacity>
   );
 
-  const allSongs = [...songs, ...downloadsSongs];
+  const allSongs = [...songs];
+  // const allSongs = [...songs, ...downloadsSongs];
 
   return (
     <View style={styles.container}>
@@ -127,7 +130,7 @@ const Songs = () => {
           renderItem={renderSong}
           keyExtractor={item => item.id || item.uri}
           contentContainerStyle={styles.listContainer}
-          onEndReached={handleLoadMore}
+          onEndReached={handleLoadMore} // Use the defined handleLoadMore function here
           onEndReachedThreshold={0.5}
         />
       ) : (
