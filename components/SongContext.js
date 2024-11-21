@@ -4,7 +4,9 @@ import { Audio } from 'expo-av';
 export const SongContext = createContext();
 
 export const SongProvider = ({ children }) => {
+  const [songs, setSongs] = useState([]);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sound, setSound] = useState(null);
   const [position, setPosition] = useState(0);
@@ -18,28 +20,62 @@ export const SongProvider = ({ children }) => {
     };
   }, [sound]);
 
-  const playSong = async (song) => {
-    if (sound) {
-      await sound.unloadAsync(); // Unload previous sound
+  const playSongAtIndex = async (index) => {
+    try {
+      // Set audio mode for background playback
+      await Audio.setAudioModeAsync({
+        staysActiveInBackground: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
+      const song = songs[index];
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: song.uri },
+        { shouldPlay: true },
+        onPlaybackStatusUpdate
+      );
+      setSound(newSound);
+      setSelectedSong(song);
+      setCurrentIndex(index);
+      setIsPlaying(true);
+    } catch (error) {
+      console.error("Error playing song:", error);
     }
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: song.uri },
-      { shouldPlay: true },
-      onPlaybackStatusUpdate
-    );
-    setSound(newSound);
-    setSelectedSong(song); // Set the currently selected song
-    setIsPlaying(true);
+  };
+
+  const playSong = async (song) => {
+    const index = songs.findIndex((s) => s.id === song.id);
+    if (index !== -1) {
+      setSelectedSong(song);
+      playSongAtIndex(index);
+    }
   };
 
   const togglePlayPause = async () => {
     if (sound) {
       if (isPlaying) {
-        await sound.pauseAsync(); // Pause the sound
+        await sound.pauseAsync();
       } else {
-        await sound.playAsync(); // Play the sound
+        await sound.playAsync();
       }
-      setIsPlaying(!isPlaying); // Toggle the play state
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const playNext = () => {
+    if (currentIndex < songs.length - 1) {
+      playSongAtIndex(currentIndex + 1);
+    }
+  };
+
+  const playPrev = () => {
+    if (currentIndex > 0) {
+      playSongAtIndex(currentIndex - 1);
     }
   };
 
@@ -53,15 +89,18 @@ export const SongProvider = ({ children }) => {
   return (
     <SongContext.Provider
       value={{
+        songs,
+        setSongs,
         selectedSong,
-        setSelectedSong,
+        currentIndex,
         isPlaying,
         playSong,
         togglePlayPause,
+        playNext,
+        playPrev,
         position,
-        setPosition,
         duration,
-        sound, // Expose sound object
+        sound,
       }}
     >
       {children}

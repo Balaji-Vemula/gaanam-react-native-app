@@ -11,6 +11,8 @@ const Player = () => {
     togglePlayPause,
     position,
     duration,
+    playNext,
+    playPrev,
     sound,
   } = useContext(SongContext);
 
@@ -27,6 +29,7 @@ const Player = () => {
 
     return (
       <View style={styles.metadataContainer}>
+        {/* <Image source={{ uri: selectedSong.picture }} style={styles.albumArt} /> */}
         {selectedSong.picture ? (
           <Image source={{ uri: selectedSong.picture }} style={styles.albumArt} />
         ) : (
@@ -51,7 +54,7 @@ const Player = () => {
         maximumTrackTintColor="#b5b5b5"
       />
       <View style={styles.controls}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={playPrev}>
           <MaterialIcons name="skip-previous" size={40} color="#f72585" />
         </TouchableOpacity>
         <TouchableOpacity onPress={togglePlayPause}>
@@ -61,7 +64,7 @@ const Player = () => {
             color="#f72585"
           />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={playNext}>
           <MaterialIcons name="skip-next" size={40} color="#f72585" />
         </TouchableOpacity>
       </View>

@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,8 +25,12 @@
       },
       "permissions": [
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.WAKE_LOCK",
+        "WAKE_LOCK"
       ],
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=your.package.name",
       "useNextNotificationsApi": true,
       "package": "com.balajivemula.gaanam"
     },

@@ -4,8 +4,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { SongContext } from './SongContext';
 
 const Songs = () => {
-  const [songs, setSongs] = useState([]);
-  const { playSong, setSelectedSong } = useContext(SongContext);
+  const { songs, setSongs, playSong } = useContext(SongContext);
 
   const excludedDirectories = [
     'call recordings',
@@ -16,7 +15,7 @@ const Songs = () => {
   const shouldExcludeSong = (song) => {
     const albumName = (song.album || '').toLowerCase();
     const uri = (song.uri || '').toLowerCase();
-
+    
     return excludedDirectories.some(dir =>
       albumName.includes(dir) || uri.includes(dir)
     );
@@ -43,26 +42,16 @@ const Songs = () => {
       };
       const response = await MediaLibrary.getAssetsAsync(options);
       
-      // Log all fetched songs for debugging
-      console.log('Fetched Songs:', response.assets);
-      
       // Filter out unwanted songs
-      const filteredSongs = response.assets.filter(song => {
-        const exclude = shouldExcludeSong(song);
-        if (exclude) {
-          console.log('Excluding song:', song); // Log excluded songs for debugging
-        }
-        return !exclude;
-      });
+      const filteredSongs = response.assets.filter(song => !shouldExcludeSong(song));
 
-      setSongs(filteredSongs); // Set only the filtered songs
+      setSongs(filteredSongs);
     } catch (error) {
       console.error("Error reading songs:", error);
     }
   };
 
   const handleSongPress = (song) => {
-    setSelectedSong(song);
     playSong(song);
   };
 

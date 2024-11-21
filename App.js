@@ -15,7 +15,7 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Songs':
-        return <Songs onNavigate={setCurrentScreen} />; // Pass the onNavigate function here
+        return <Songs />;
       case 'Player':
         return <Player />;
       case 'Favorites':
@@ -46,10 +46,6 @@ export default function App() {
               <QuoteCard
                 quote="Music expresses that which cannot be put into words and cannot remain silent."
                 author="Victor Hugo"
-              />
-              <QuoteCard
-                quote="Life is like a beautiful melody, only the lyrics are messed up."
-                author="Hans Christian Andersen"
               />
             </View>
           </ScrollView>
